@@ -1,0 +1,126 @@
+package com.globalcodelabs.socialmediaplanner.domain.repository;
+
+import com.globalcodelabs.socialmediaplanner.domain.model.Content;
+import com.globalcodelabs.socialmediaplanner.domain.enums.ContentStatus;
+import com.globalcodelabs.socialmediaplanner.domain.enums.Platform;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface ContentRepository extends JpaRepository<Content, UUID> {
+
+    boolean existsByBatchIdAndGenerationIndex(UUID batchId, Integer generationIndex);
+
+    @Query("""
+            SELECT content.generationIndex
+            FROM Content content
+            WHERE content.batchId = :batchId
+              AND content.generationIndex IS NOT NULL
+            ORDER BY content.generationIndex
+            """)
+    List<Integer> findGenerationIndexesByBatchId(@Param("batchId") UUID batchId);
+
+    @Query("""
+            SELECT content
+            FROM Content content
+            WHERE (:status IS NULL OR content.status = :status)
+              AND (:platform IS NULL OR content.platform = :platform)
+              AND (:batchId IS NULL OR content.batchId = :batchId)
+              AND (
+                    LOWER(content.title) LIKE CONCAT('%', LOWER(:searchTerm), '%')
+                    OR LOWER(content.text) LIKE CONCAT('%', LOWER(:searchTerm), '%')
+              )
+            """)
+    Page<Content> findAllByFilters(
+            @Param("status") ContentStatus status,
+            @Param("platform") Platform platform,
+            @Param("batchId") UUID batchId,
+            @Param("searchTerm") String searchTerm,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT content.status AS status, COUNT(content) AS count
+            FROM Content content
+            WHERE (:platform IS NULL OR content.platform = :platform)
+              AND (
+                    :searchTerm = ''
+                    OR LOWER(content.title) LIKE CONCAT('%', LOWER(:searchTerm), '%')
+                    OR LOWER(content.text) LIKE CONCAT('%', LOWER(:searchTerm), '%')
+              )
+            GROUP BY content.status
+            """)
+    List<ContentStatusCount> countByStatusAndFilters(
+            @Param("platform") Platform platform,
+            @Param("searchTerm") String searchTerm
+    );
+
+    @EntityGraph(attributePaths = "media")
+    @Query("SELECT content FROM Content content WHERE content.id = :contentId")
+    Optional<Content> findWithMediaById(@Param("contentId") UUID contentId);
+
+    @EntityGraph(attributePaths = "media")
+    @Query("""
+            SELECT DISTINCT content
+            FROM Content content
+            WHERE content.scheduledAt >= :from
+              AND content.scheduledAt < :to
+              AND (:status IS NULL OR content.status = :status)
+              AND (:platform IS NULL OR content.platform = :platform)
+            ORDER BY content.scheduledAt, content.id
+            """)
+    List<Content> findCalendarEntries(
+            @Param("from") OffsetDateTime from,
+            @Param("to") OffsetDateTime to,
+            @Param("status") ContentStatus status,
+            @Param("platform") Platform platform
+    );
+
+    @Query(value = """
+            SELECT content.id
+            FROM content
+            WHERE content.status = 'SCHEDULED'
+              AND content.scheduled_at <= :now
+            ORDER BY content.scheduled_at, content.id
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    Optional<UUID> lockNextDueContentId(@Param("now") OffsetDateTime now);
+
+    @Query(value = """
+            SELECT content.id
+            FROM content
+            WHERE content.status = 'PUBLISHING'
+              AND content.external_post_id IS NOT NULL
+              AND (content.publication_checked_at IS NULL OR content.publication_checked_at <= :checkBefore)
+            ORDER BY content.publication_checked_at NULLS FIRST, content.publishing_started_at, content.id
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    Optional<UUID> lockNextPendingConfirmationId(@Param("checkBefore") OffsetDateTime checkBefore);
+
+    @Query(value = """
+            SELECT content.id
+            FROM content
+            WHERE content.status = 'PUBLISHING'
+              AND content.publishing_started_at <= :deadline
+            ORDER BY content.publishing_started_at, content.id
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    Optional<UUID> lockNextTimedOutPublicationId(@Param("deadline") OffsetDateTime deadline);
+
+    interface ContentStatusCount {
+        ContentStatus getStatus();
+
+        long getCount();
+    }
+}
