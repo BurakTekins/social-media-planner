@@ -1,0 +1,3067 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Planner Pilot API",
+    "version": "0.1.0",
+    "description": "Proposed interface, not deployed. Paths assume tenant identity derived from authentication and brand membership verified on every tenant-scoped request. Existing application endpoints remain implementation inputs. Model routing, cost evidence and publication acceptance are independent contracts."
+  },
+  "servers": [
+    {
+      "url": "https://api.example.invalid",
+      "description": "Placeholder"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/brands/{brandId}/provider-credentials": {
+      "post": {
+        "summary": "Store a provider credential reference",
+        "description": "The secret is write-only and encrypted at rest. Provider administration claims, if any, are requested separately.",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8
+            },
+            "description": "Unique to tenant and operation. Retained through the provider retry window."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredentialRef"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CredentialInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/commerce-connections": {
+      "post": {
+        "summary": "Configure a catalog connector",
+        "description": "Return the connector verification job. CSV imports use the same product normalization.",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8
+            },
+            "description": "Unique to tenant and operation. Retained through the provider retry window."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted and persisted for asynchronous processing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL for polling the accepted job.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommerceConnection"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/commerce-connections/{connectionId}/syncs": {
+      "post": {
+        "summary": "Request a catalog synchronization",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8
+            },
+            "description": "Unique to tenant and operation. Retained through the provider retry window."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted and persisted for asynchronous processing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL for polling the accepted job.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/products": {
+      "get": {
+        "summary": "List the synchronized product snapshots",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque pagination cursor."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Product"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/campaigns": {
+      "post": {
+        "summary": "Create a campaign with pinned product snapshots",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8
+            },
+            "description": "Unique to tenant and operation. Retained through the provider retry window."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Campaign"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/generation-quotes": {
+      "post": {
+        "summary": "Calculate an expiring generation quote",
+        "description": "Freeze input and price snapshots. The quote does not call paid generation services.",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/generation-jobs": {
+      "post": {
+        "summary": "Reserve budget and queue generation",
+        "description": "Reserve brand and job budgets transactionally. Reject expired quotes, mismatched inputs and exceeded budgets.",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8
+            },
+            "description": "Unique to tenant and operation. Retained through the provider retry window."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted and persisted for asynchronous processing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL for polling the accepted job.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerationRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/generation-jobs/{jobId}": {
+      "get": {
+        "summary": "Read generation state and cost evidence",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Generation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/{jobId}": {
+      "get": {
+        "summary": "Poll asynchronous work",
+        "description": "All jobs remain tenant-scoped. The Location header is authoritative.",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/video-projects/{projectId}": {
+      "get": {
+        "summary": "Read an immutable video revision",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoProject"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Current project revision ETag.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/video-projects/{projectId}/scene-order": {
+      "put": {
+        "summary": "Set the ordered list of scenes",
+        "description": "Reject a stale revision so concurrent edits do not overwrite each other.",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Current project revision ETag."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoProject"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "New project revision ETag.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Project ETag is stale.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderScenes"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/video-projects/{projectId}/scenes/{sceneId}/regenerations": {
+      "post": {
+        "summary": "Queue regeneration of one scene",
+        "description": "Use a quote scoped to the requested change. Other scene revisions remain reusable.",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "sceneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8
+            },
+            "description": "Unique to tenant and operation. Retained through the provider retry window."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted and persisted for asynchronous processing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL for polling the accepted job.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SceneInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/video-projects/{projectId}/exports": {
+      "post": {
+        "summary": "Queue a render from a pinned revision",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8
+            },
+            "description": "Unique to tenant and operation. Retained through the provider retry window."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted and persisted for asynchronous processing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL for polling the accepted job.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/exports/{exportId}": {
+      "get": {
+        "summary": "Read render status and asset reference",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "exportId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/campaigns/{campaignId}/approvals": {
+      "post": {
+        "summary": "Record approval for a content revision",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "campaignId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8
+            },
+            "description": "Unique to tenant and operation. Retained through the provider retry window."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Approval"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/campaigns/{campaignId}/publications": {
+      "post": {
+        "summary": "Queue an approved publication",
+        "description": "Credential and approval must belong to the same tenant, target and content revision. Ambiguous provider outcomes require review and never trigger a blind retry.",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "campaignId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8
+            },
+            "description": "Unique to tenant and operation. Retained through the provider retry window."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted and persisted for asynchronous processing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL for polling the accepted job.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicationInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/publications/{publicationId}": {
+      "get": {
+        "summary": "Read publication and confirmation state",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "publicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Publication"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands/{brandId}/campaigns/{campaignId}/attribution": {
+      "get": {
+        "summary": "Read campaign attribution and unmatched totals",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          },
+          {
+            "name": "campaignId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Attribution"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operation is outside the caller’s scope.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict, budget conflict, quote conflict, or idempotency key reused with another payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unsupported capability or invalid resource state.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/r/{linkCode}": {
+      "get": {
+        "summary": "Record an eligible click and redirect",
+        "description": "The destination is server-owned, validated and stored with the link. Consent and channel controls determine click eligibility.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "linkCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Resource identifier."
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Request completed.",
+            "headers": {
+              "Location": {
+                "description": "Approved destination with campaign parameters.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integrations/{provider}/webhooks": {
+      "post": {
+        "summary": "Receive provider-signed integration events",
+        "description": "Provider-specific signature and delivery identity are read from the original headers and raw body. API bearer authentication does not apply here. Store verified deliveries before acknowledgement and deduplicate effects.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Registered provider slug."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted and persisted for asynchronous processing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventReceipt"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL for polling the accepted job.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed input or invalid webhook signature.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource unavailable within this tenant.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit reached.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Problem": {
+        "type": "object",
+        "required": [
+          "status",
+          "code",
+          "detail"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error."
+          },
+          "detail": {
+            "type": "string",
+            "description": "Safe error description."
+          },
+          "traceId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          }
+        }
+      },
+      "Money": {
+        "type": "object",
+        "required": [
+          "amountMinor",
+          "currency"
+        ],
+        "properties": {
+          "amountMinor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          }
+        }
+      },
+      "JobRef": {
+        "type": "object",
+        "required": [
+          "id",
+          "state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "SUCCEEDED",
+              "FAILED",
+              "REVIEW_REQUIRED"
+            ]
+          }
+        }
+      },
+      "CommerceConnection": {
+        "type": "object",
+        "required": [
+          "provider",
+          "credentialRef"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "SHOPIFY",
+              "IKAS",
+              "CSV"
+            ]
+          },
+          "credentialRef": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "externalShopRef": {
+            "type": "string",
+            "description": "Store alias or provider account identifier."
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "title": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "stock": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "price": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceVersion": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          }
+        }
+      },
+      "ModelSelection": {
+        "type": "object",
+        "required": [
+          "capability",
+          "provider",
+          "modelId",
+          "credentialRef"
+        ],
+        "properties": {
+          "capability": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "IMAGE",
+              "VIDEO",
+              "VOICE"
+            ]
+          },
+          "provider": {
+            "type": "string"
+          },
+          "modelId": {
+            "type": "string"
+          },
+          "credentialRef": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          }
+        }
+      },
+      "CredentialRef": {
+        "type": "object",
+        "required": [
+          "id",
+          "provider",
+          "state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "provider": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "VALID",
+              "INVALID",
+              "REVOKED"
+            ]
+          }
+        }
+      },
+      "CredentialInput": {
+        "type": "object",
+        "required": [
+          "provider",
+          "secret"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string",
+            "writeOnly": true,
+            "format": "password"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "CampaignInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "productIds",
+          "brief"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "productIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Opaque, tenant-scoped identifier."
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "brief": {
+            "type": "string"
+          },
+          "sourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Opaque, tenant-scoped identifier."
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "Campaign": {
+        "type": "object",
+        "required": [
+          "id",
+          "brandId",
+          "name",
+          "productSnapshotIds"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "brandId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "name": {
+            "type": "string"
+          },
+          "productSnapshotIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Opaque, tenant-scoped identifier."
+            },
+            "uniqueItems": true
+          },
+          "trackableLink": {
+            "type": "string",
+            "description": "First-party tracking or campaign landing link.",
+            "format": "uri"
+          }
+        }
+      },
+      "QuoteInput": {
+        "type": "object",
+        "required": [
+          "campaignId",
+          "models"
+        ],
+        "properties": {
+          "campaignId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "models": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/ModelSelection"
+            }
+          },
+          "sceneCount": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "maxBudget": {
+            "$ref": "#/components/schemas/Money"
+          }
+        }
+      },
+      "Quote": {
+        "type": "object",
+        "required": [
+          "id",
+          "estimatedTotal",
+          "expiresAt",
+          "priceSnapshotId",
+          "planFingerprint"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "estimatedTotal": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "priceSnapshotId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "planFingerprint": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          }
+        }
+      },
+      "GenerationRequest": {
+        "type": "object",
+        "required": [
+          "quoteId",
+          "maxBudget"
+        ],
+        "properties": {
+          "quoteId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "maxBudget": {
+            "$ref": "#/components/schemas/Money"
+          }
+        }
+      },
+      "Generation": {
+        "type": "object",
+        "required": [
+          "id",
+          "state",
+          "campaignId",
+          "quoteId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "SUCCEEDED",
+              "FAILED",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "campaignId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "quoteId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "videoProjectId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "costEntries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CostEntry"
+            }
+          }
+        }
+      },
+      "CostEntry": {
+        "type": "object",
+        "required": [
+          "kind",
+          "amount",
+          "source",
+          "scope"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "ESTIMATE",
+              "OBSERVED",
+              "RECONCILED",
+              "ALLOCATED"
+            ]
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "source": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "JOB",
+              "BRAND",
+              "PROVIDER_ACCOUNT"
+            ]
+          },
+          "windowStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "windowEnd": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SceneInput": {
+        "type": "object",
+        "required": [
+          "sceneRevisionId",
+          "quoteId"
+        ],
+        "properties": {
+          "sceneRevisionId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "quoteId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "promptOverride": {
+            "type": "string"
+          }
+        }
+      },
+      "VideoProject": {
+        "type": "object",
+        "required": [
+          "id",
+          "revisionId",
+          "sceneRevisionIds"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "revisionId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "sceneRevisionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Opaque, tenant-scoped identifier."
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "OrderScenes": {
+        "type": "object",
+        "required": [
+          "sceneRevisionIds"
+        ],
+        "properties": {
+          "sceneRevisionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Opaque, tenant-scoped identifier."
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          }
+        }
+      },
+      "ExportInput": {
+        "type": "object",
+        "required": [
+          "revisionId",
+          "format"
+        ],
+        "properties": {
+          "revisionId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "MP4_9_16"
+            ]
+          }
+        }
+      },
+      "ExportResult": {
+        "type": "object",
+        "required": [
+          "id",
+          "state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "SUCCEEDED",
+              "FAILED"
+            ]
+          },
+          "assetId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          }
+        }
+      },
+      "ApprovalInput": {
+        "type": "object",
+        "required": [
+          "contentVersionId",
+          "decision"
+        ],
+        "properties": {
+          "contentVersionId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REQUEST_CHANGES"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "Approval": {
+        "type": "object",
+        "required": [
+          "id",
+          "contentVersionId",
+          "decision"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "contentVersionId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REQUEST_CHANGES"
+            ]
+          }
+        }
+      },
+      "PublicationInput": {
+        "type": "object",
+        "required": [
+          "contentVersionId",
+          "approvalId",
+          "socialAccountId",
+          "adapter"
+        ],
+        "properties": {
+          "contentVersionId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "approvalId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "socialAccountId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "adapter": {
+            "type": "string",
+            "enum": [
+              "NATIVE",
+              "SOSYAL_KOPRU",
+              "MANUAL"
+            ]
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Publication": {
+        "type": "object",
+        "required": [
+          "id",
+          "state",
+          "contentVersionId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "PUBLISHING",
+              "PUBLISHED",
+              "FAILED",
+              "REVIEW_REQUIRED",
+              "AWAITING_MANUAL_CONFIRMATION"
+            ]
+          },
+          "contentVersionId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "externalPostId": {
+            "type": "string",
+            "description": "Opaque, tenant-scoped identifier."
+          },
+          "permalink": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "Attribution": {
+        "type": "object",
+        "required": [
+          "clicks",
+          "attributedPaidOrders",
+          "netAttributedRevenue",
+          "unmatchedOrdersInScope",
+          "windowDays",
+          "method"
+        ],
+        "properties": {
+          "clicks": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "attributedPaidOrders": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "netAttributedRevenue": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Money"
+            }
+          },
+          "unmatchedOrdersInScope": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "windowDays": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "LAST_ELIGIBLE_CLICK"
+            ]
+          },
+          "couponMatchedOrders": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "EventReceipt": {
+        "type": "object",
+        "required": [
+          "accepted"
+        ],
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}
